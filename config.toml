@@ -49,7 +49,7 @@ icons = true
 # can be used as the icon. The bi- prefix should not be added.
 links = [
   {url = "/blog", name = "Blog", icon = "journal-bookmark"},
-  {url = "https://drive.google.com/file/d/1Q-saA5sHldwApYBU9NpzTtYWxCda52__/view", name = "Resume", icon = "person"},
+  {url = "https://docs.google.com/document/d/1A8KGNkAtYyi4zIxSFWQ_mwBqhbXn8Pu_qbSNzDHwaws/edit?usp=sharing", name = "Resume", icon = "person"},
   {url = "https://github.com/vikramxD", name = "", icon = "github"},
   {url = "https://twitter.com/V_J_S_1", name = "", icon = "twitter-x"},
   {url = "https://huggingface.co/VikramSingh178", name = "HuggingFace"},
