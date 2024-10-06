@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title> - Posts</title>
+    <link rel="self" type="application/atom+xml" href="https://vikramxd.github.io/posts/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://vikramxd.github.io/posts/"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2024-10-23T00:00:00+00:00</updated>
+    <id>https://vikramxd.github.io/posts/atom.xml</id>
+    <entry xml:lang="en">
+        <title>Implementing the Transformer Model from Scratch </title>
+        <published>2024-10-23T00:00:00+00:00</published>
+        <updated>2024-10-23T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://vikramxd.github.io/posts/transformers/"/>
+        <id>https://vikramxd.github.io/posts/transformers/</id>
+        
+        <content type="html" xml:base="https://vikramxd.github.io/posts/transformers/">&lt;h3 id=&quot;introduction&quot;&gt;Introduction&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#introduction&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;p&gt;The Transformer, with its parallel processing capabilities, allowed for more efficient and scalable models, making it easier to train them on large datasets. It also demonstrated superior performance in several NLP tasks, such as sentiment analysis and text generation tasks. The Transformer model has since become the foundation for many state-of-the-art NLP models, such as BERT, GPT-2, and T5.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;main-components-of-the-transformer-architecture&quot;&gt;Main Components of the Transformer Architecture&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#main-components-of-the-transformer-architecture&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;p&gt;&lt;img src=&quot;https:&#x2F;&#x2F;huggingface.co&#x2F;datasets&#x2F;huggingface-course&#x2F;documentation-images&#x2F;resolve&#x2F;main&#x2F;en&#x2F;chapter1&#x2F;transformers-dark.svg&quot; alt=&quot;Transformer Architecture&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;The Transformer Architecture Consists of 2 main Components -&amp;gt;&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Encoder -  The encoder receives an input and builds an Embedding of it&#x27;s Features. This means that the model learns to understand the association of words or sequence.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;li&gt;
+&lt;p&gt;Decoder - The decoder uses the encoder’s output embeddings along with other inputs to generate a target sequence.&lt;&#x2F;p&gt;
+&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;h3 id=&quot;input-embeddings&quot;&gt;Input Embeddings&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#input-embeddings&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;p&gt;Whenever we use a dataset , and try to Train a Model on it , we always convert explicitly or implicitly to a representation which the model can interpret &#x2F; understand and then reconvert it into a representation we understand , the Function of Input Embedding Block in the Transformer Architecture is just that only. In the Orignal Paper the Authors used , the Input Block with an Embedding Dimension of 512.To prevent the input Embeddings from being extremely small , we normalize them by Multiplying the by root of EmbeddingDimension&lt;&#x2F;p&gt;
+&lt;h4 id=&quot;implementation-of-the-input-embedding-block&quot;&gt;Implementation of the Input Embedding Block&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#implementation-of-the-input-embedding-block&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h4&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#383838;color:#e6e1dc;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch.nn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;as &lt;&#x2F;span&gt;&lt;span&gt;nn
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;math
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;class &lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;color:#ffc66d;&quot;&gt;InputEmbeddingBlock&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;font-style:italic;color:#ffc66d;&quot;&gt;nn.Module&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;embedding_dim&lt;&#x2F;span&gt;&lt;span&gt;:&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#6e9cbe;&quot;&gt;int&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;vocab_size&lt;&#x2F;span&gt;&lt;span&gt;:&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#6e9cbe;&quot;&gt;int&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;                
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;super&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.embedding_dim &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;embedding_dim &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;# Reffered in the paper as d_model, (Size == 512)
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.vocab_size &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;vocab_size &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;## Size of the Vocabulary of the input 
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.embedding &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Embedding(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.vocab_size,&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffc66d;&quot;&gt;forward&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;x&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.embedding_dim(x)&lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;*&lt;&#x2F;span&gt;&lt;span&gt;math.sqrt(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.embedding_dim) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;## This is done to help Prevent the Size of Input Embedding being diminished
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;positional-encoding&quot;&gt;Positional Encoding&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#positional-encoding&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;p&gt;The input now is converted into input Embeddings of Dimension 512 , but unless we don&#x27;t provide a signal for the encoder on the relative or absolute position of the tokens in the sequence the Model can&#x27;t learn the corresponding association
+to get around that probelm the authors have provided a positional Encoding for a token based on if its index is an even number or an odd number , these encodings are computed only once and in the paper are not learned by the model.&lt;&#x2F;p&gt;
+&lt;h4 id=&quot;implementation-of-the-positional-encoding-block&quot;&gt;Implementation of the Positional Encoding Block&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#implementation-of-the-positional-encoding-block&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h4&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#383838;color:#e6e1dc;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch.nn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;as &lt;&#x2F;span&gt;&lt;span&gt;nn
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;class &lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;color:#ffc66d;&quot;&gt;PositionalEncoding&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;font-style:italic;color:#ffc66d;&quot;&gt;nn.Module&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;    Positional Encoding module for Transformer models.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;    Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        embedding_dim (int): The dimension of the input embeddings.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        sequence_len (int): The length of the input sequence.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        dropout (float): The dropout probability.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;    &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;embedding_dim&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#6e9cbe;&quot;&gt;int&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;sequence_len&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#6e9cbe;&quot;&gt;int&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dropout&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#6e9cbe;&quot;&gt;float&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;super&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.embedding_dim &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;embedding_dim
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.sequence_len &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;sequence_len
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Dropout(dropout)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;# Creating a matrix of size (sequence_len,embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        positional_encoding &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;torch.zeros(sequence_len, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;# Create a vector of shape (sequence_len,1)
+&lt;&#x2F;span&gt;&lt;span&gt;        position &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;torch.arange(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;, sequence_len, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dtype&lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt;torch.float).unsqueeze(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dim&lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;        division_term &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;torch.exp(torch.arange(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;, embedding_dim, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;)).float() &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;* &lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;-&lt;&#x2F;span&gt;&lt;span&gt;torch.log(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;10000.0&lt;&#x2F;span&gt;&lt;span&gt;) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;&#x2F; &lt;&#x2F;span&gt;&lt;span&gt;embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;# Apply the sin formula to the even positions and cosine formula to the odd positions
+&lt;&#x2F;span&gt;&lt;span&gt;        positional_encoding[:, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;::&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;] &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;torch.sin(position &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;* &lt;&#x2F;span&gt;&lt;span&gt;division_term) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;# Every two Terms even -&amp;gt; 0 -&amp;gt; 2 -&amp;gt; 4 
+&lt;&#x2F;span&gt;&lt;span&gt;        positional_encoding[:, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;::&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;] &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;torch.cos(position &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;* &lt;&#x2F;span&gt;&lt;span&gt;division_term) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;# Every two Terms odd -&amp;gt; 1 -&amp;gt; 3 -&amp;gt; 5
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;        positional_encoding &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;positional_encoding.unsqueeze(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dim&lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.register_buffer(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;&amp;#39;positional_encoding&amp;#39;&lt;&#x2F;span&gt;&lt;span&gt;,positional_encoding)
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffc66d;&quot;&gt;forward&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;,&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;x&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;+ &lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.pe[:,:x.shape[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;],:]).requires_grad(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6e9cbe;&quot;&gt;False&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout(x)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;layer-normalization&quot;&gt;Layer Normalization&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#layer-normalization&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;p&gt;These are the Add and Norm Layer in the Architecture these help scaling input tensor with Layer the LayerNormalization Block is already implemented in Pytorch&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#383838;color:#e6e1dc;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch.nn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;as &lt;&#x2F;span&gt;&lt;span&gt;nn
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;class &lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;color:#ffc66d;&quot;&gt;LayerNormalization&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;font-style:italic;color:#ffc66d;&quot;&gt;nn.Module&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;    Applies layer normalization to the input tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;    Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        eps (float, optional): A value added to the denominator for numerical stability. Default is 1e-5.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;    &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;eps&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#6e9cbe;&quot;&gt;float &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1e-5&lt;&#x2F;span&gt;&lt;span&gt;) -&amp;gt; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6e9cbe;&quot;&gt;None&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.eps &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;eps
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffc66d;&quot;&gt;forward&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;x&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Applies layer normalization to the input tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            x (torch.Tensor): The input tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Returns:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            torch.Tensor: The normalized tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;nn.LayerNorm(x, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;eps&lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.eps)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;simple-mlp-or-feedforward-block&quot;&gt;Simple MLP or FeedForward Block&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#simple-mlp-or-feedforward-block&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;p&gt;Really Simple MLP consisting of 2 Linear Layers with the ReLU activation function b&#x2F;w them also using Dropout Layer for overfitting prevention.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;implemention-of-the-feedforward-block&quot;&gt;Implemention of the FeedForward Block&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#implemention-of-the-feedforward-block&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#383838;color:#e6e1dc;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch.nn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;as &lt;&#x2F;span&gt;&lt;span&gt;nn
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;class &lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;color:#ffc66d;&quot;&gt;FeedForwardBlock&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;font-style:italic;color:#ffc66d;&quot;&gt;nn.Module&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;    A feed-forward block in the Transformer model.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;    Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        embedding_dim (int): The dimensionality of the input embeddings.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        feed_forward_dim (int): The dimensionality of the hidden layer in the feed-forward network.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        dropout (float): The dropout probability.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;    Attributes:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        linear_1 (nn.Linear): The first linear layer.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        dropout (nn.Dropout): The dropout layer.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        linear_2 (nn.Linear): The second linear layer.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;    &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;embedding_dim&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;feed_forward_dim&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dropout&lt;&#x2F;span&gt;&lt;span&gt;) -&amp;gt; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6e9cbe;&quot;&gt;None&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;super&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.linear_1 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Linear(embedding_dim, feed_forward_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Dropout(dropout)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.linear_2 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Linear(feed_forward_dim, embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffc66d;&quot;&gt;forward&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;x&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Forward pass of the feed-forward block.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            x (torch.Tensor): The input tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Returns:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            torch.Tensor: The output tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.linear_1(x)
+&lt;&#x2F;span&gt;&lt;span&gt;        x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.ReLU(x)
+&lt;&#x2F;span&gt;&lt;span&gt;        x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout(x)
+&lt;&#x2F;span&gt;&lt;span&gt;        x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.linear_2(x)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;x 
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;multihead-attention-block&quot;&gt;Multihead Attention Block&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#multihead-attention-block&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;p&gt;The Multi-Head Attention block receives the input data split into queries, keys, and values organized into matrices 𝑄, 𝐾, and 𝑉. Each matrix contains different facets of the input, and they have the same dimensions as the input.We then linearly transform each matrix by their respective weight matrices 𝑊^Q, 𝑊^K, and 𝑊^V. These transformations will result in new matrices 𝑄′, 𝐾′, and 𝑉′, which will be split into smaller matrices corresponding to different heads ℎ, allowing the model to attend to information from different representation subspaces in parallel. This split creates multiple sets of queries, keys, and values for each head. Finally, we concatenate every head into an 𝐻 matrix, which is then transformed by another weight matrix 𝑊𝑜 to produce the multi-head attention output, a matrix 𝑀𝐻−𝐴 that retains the input dimensionality.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;implementation-of-multihead-attention-block&quot;&gt;Implementation of Multihead Attention Block&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#implementation-of-multihead-attention-block&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#383838;color:#e6e1dc;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch.nn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;as &lt;&#x2F;span&gt;&lt;span&gt;nn
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;class &lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;color:#ffc66d;&quot;&gt;MultiHeadAttention&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;font-style:italic;color:#ffc66d;&quot;&gt;nn.Module&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;embedding_dim&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;num_heads&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Initializes the MultiHeadAttention module.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            embedding_dim (int): The input and output dimension of the model.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            num_heads (int): The number of attention heads.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Raises:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            AssertionError: If embedding_dim is not divisible by num_heads.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;super&lt;&#x2F;span&gt;&lt;span&gt;(MultiHeadAttention, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;).&lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;assert &lt;&#x2F;span&gt;&lt;span&gt;embedding_dim &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;% &lt;&#x2F;span&gt;&lt;span&gt;num_heads &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;== &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c1be91;&quot;&gt;&amp;quot;embedding_dim must be divisible by num_heads&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.embedding_dim &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;embedding_dim
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.num_heads &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;num_heads
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.d_k &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.embedding_dim &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;&#x2F;&#x2F; &lt;&#x2F;span&gt;&lt;span&gt;num_heads
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.W_q &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Linear(embedding_dim,embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.W_k &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Linear(embedding_dim, embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.W_v &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Linear(embedding_dim, embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.W_o &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Linear(embedding_dim, embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffc66d;&quot;&gt;scaled_dot_product_attention&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;Q&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;K&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;V&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;mask&lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6e9cbe;&quot;&gt;None&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Performs scaled dot product attention.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            Q (torch.Tensor): The query tensor of shape (batch_size, seq_length, embedding_dim).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            K (torch.Tensor): The key tensor of shape (batch_size, seq_length, embedding_dim).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            V (torch.Tensor): The value tensor of shape (batch_size, seq_length, embedding_dim).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            mask (torch.Tensor, optional): The attention mask tensor of shape (batch_size, seq_length, seq_length).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Returns:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            torch.Tensor: The output tensor of shape (batch_size, seq_length, embedding_dim).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        attn_scores &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;torch.matmul(Q, K.transpose(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;)) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;&#x2F; &lt;&#x2F;span&gt;&lt;span&gt;math.sqrt(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.d_k)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;if &lt;&#x2F;span&gt;&lt;span&gt;mask &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;is not &lt;&#x2F;span&gt;&lt;span style=&quot;color:#6e9cbe;&quot;&gt;None&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;            attn_scores &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;attn_scores.masked_fill(mask &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;== &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1e9&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;        attn_probs &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;torch.softmax(attn_scores, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dim&lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;=-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;        output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;torch.matmul(attn_probs, V)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;output
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffc66d;&quot;&gt;split_heads&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;x&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Splits the input tensor into multiple heads.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            x (torch.Tensor): The input tensor of shape (batch_size, seq_length, embedding_dim).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Returns:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            torch.Tensor: The tensor with shape (batch_size, num_heads, seq_length, d_k).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        batch_size, seq_length, embedding_dim &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;x.size()
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;x.view(batch_size, seq_length, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.num_heads, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.d_k).transpose(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffc66d;&quot;&gt;combine_heads&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;x&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Combines the heads of the input tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            x (torch.Tensor): The input tensor of shape (batch_size, num_heads, seq_length, d_k).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Returns:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            torch.Tensor: The tensor with shape (batch_size, seq_length, embedding_dim).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        batch_size, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;_&lt;&#x2F;span&gt;&lt;span&gt;, seq_length, d_k &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;x.size()
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;x.transpose(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;).contiguous().view(batch_size, seq_length, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffc66d;&quot;&gt;forward&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;Q&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;K&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;V&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;mask&lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#6e9cbe;&quot;&gt;None&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Performs forward pass of the MultiHeadAttention module.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            Q (torch.Tensor): The query tensor of shape (batch_size, seq_length, embedding_dim).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            K (torch.Tensor): The key tensor of shape (batch_size, seq_length, embedding_dim).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            V (torch.Tensor): The value tensor of shape (batch_size, seq_length, embedding_dim).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            mask (torch.Tensor, optional): The attention mask tensor of shape (batch_size, seq_length, seq_length).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Returns:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            torch.Tensor: The output tensor of shape (batch_size, seq_length, embedding_dim).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        Q &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.split_heads(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.W_q(Q))
+&lt;&#x2F;span&gt;&lt;span&gt;        K &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.split_heads(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.W_k(K))
+&lt;&#x2F;span&gt;&lt;span&gt;        V &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.split_heads(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.W_v(V))
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;        attn_output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.scaled_dot_product_attention(Q, K, V, mask)
+&lt;&#x2F;span&gt;&lt;span&gt;        output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.W_o(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.combine_heads(attn_output))
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;output
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;encoder-block&quot;&gt;Encoder Block&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#encoder-block&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;p&gt;An Encoder layer consists of a Multi-Head Attention layer, a Position-wise Feed-Forward layer, and two Layer Normalization layers.
+The EncoderLayer class initializes with input parameters and components, including a MultiHeadAttention module, a PositionWiseFeedForward module, two layer normalization modules, and a dropout layer. The forward methods computes the encoder layer output by applying self-attention, adding the attention output to the input tensor, and normalizing the result. Then, it computes the position-wise feed-forward output, combines it with the normalized self-attention output, and normalizes the final result before returning the processed tensor.&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;implementation-of-the-encoder-block&quot;&gt;Implementation of the Encoder Block&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#implementation-of-the-encoder-block&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#383838;color:#e6e1dc;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch.nn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;as &lt;&#x2F;span&gt;&lt;span&gt;nn 
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;class &lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;color:#ffc66d;&quot;&gt;EncoderBlock&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;font-style:italic;color:#ffc66d;&quot;&gt;nn.Module&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;embedding_dim&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;num_heads&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;feed_forward_dim&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dropout&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Initializes an EncoderLayer module.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            embedding_dim (int): The dimensionality of the input and output feature vectors.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            num_heads (int): The number of attention heads.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            feed_forward_dim (int): The dimensionality of the feed-forward layer.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            dropout (float): The dropout probability.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;super&lt;&#x2F;span&gt;&lt;span&gt;(EncoderLayer, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;).&lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.self_attn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;MultiHeadAttention(embedding_dim, num_heads)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.feed_forward &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;FeedForward(embedding_dim,feed_forward_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.norm1 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;LayerNormalization(embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.norm2 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;LayerNormalization(embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Dropout(dropout)
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffc66d;&quot;&gt;forward&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;x&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;mask&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Performs a forward pass of the EncoderLayer module.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            x (torch.Tensor): The input tensor of shape (batch_size, seq_len, d_model).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            mask (torch.Tensor): The attention mask tensor of shape (batch_size, seq_len, seq_len).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Returns:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            torch.Tensor: The output tensor of shape (batch_size, seq_len, d_model).
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        attn_output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.self_attn(x, x, x, mask)
+&lt;&#x2F;span&gt;&lt;span&gt;        x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.norm1(x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;+ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout(attn_output))
+&lt;&#x2F;span&gt;&lt;span&gt;        ff_output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.feed_forward(x)
+&lt;&#x2F;span&gt;&lt;span&gt;        x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.norm2(x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;+ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout(ff_output))
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;x
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;decoder-block&quot;&gt;Decoder Block&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#decoder-block&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;p&gt;After Encoder the Keys and Values from the output are consumed and Query is provided by the Output Embedding in the Decoder the decoder layer consists of two Multi-Head Attention layers, a Position-wise Feed-Forward layer, and three Layer Normalization layers. The forward method computes the decoder layer output by performing the following steps:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;Calculate the masked self-attention output and add it to the input tensor, followed by dropout and layer normalization.&lt;&#x2F;li&gt;
+&lt;li&gt;Compute the cross-attention output between the decoder and encoder outputs, and add it to the normalized masked self-attention output, followed by dropout and layer normalization.&lt;&#x2F;li&gt;
+&lt;li&gt;Calculate the position-wise feed-forward output and combine it with the normalized cross-attention output, followed by dropout and layer normalization.&lt;&#x2F;li&gt;
+&lt;li&gt;Return the processed tensor.&lt;&#x2F;li&gt;
+&lt;li&gt;These operations enable the decoder to generate target sequences based on the input and the encoder output.&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;h3 id=&quot;implementation-of-the-decoder-block&quot;&gt;Implementation of the Decoder Block&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#implementation-of-the-decoder-block&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#383838;color:#e6e1dc;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch 
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672dd;&quot;&gt;import &lt;&#x2F;span&gt;&lt;span&gt;torch.nn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;as &lt;&#x2F;span&gt;&lt;span&gt;nn
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;class &lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;color:#ffc66d;&quot;&gt;DecoderBlock&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;font-style:italic;color:#ffc66d;&quot;&gt;nn.Module&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;embedding_dim&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;num_heads&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;feed_forward_dim&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dropout&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Initializes a DecoderLayer module.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            embedding_dim (int): The dimension of the input embeddings.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            num_heads (int): The number of attention heads.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            feed_forward_dim (int): The dimension of the feed-forward layer.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            dropout (float): The dropout probability.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;super&lt;&#x2F;span&gt;&lt;span&gt;(DecoderLayer, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;).&lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.self_attn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;MultiHeadAttention(embedding_dim, num_heads)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.cross_attn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;MultiHeadAttention(embedding_dim, num_heads)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.feed_forward &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;FeedForwardBlock(embedding_dim, feed_forward_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.norm1 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;LayerNormalization(d_model)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.norm2 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;LayerNormalization(d_model)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.norm3 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;LayerNormalization(d_model)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Dropout(dropout)
+&lt;&#x2F;span&gt;&lt;span&gt;        
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffc66d;&quot;&gt;forward&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;x&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;enc_output&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;src_mask&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;tgt_mask&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Performs a forward pass of the DecoderLayer module.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            x (torch.Tensor): The input tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            enc_output (torch.Tensor): The output of the encoder.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            src_mask (torch.Tensor): The mask for the source sequence.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            tgt_mask (torch.Tensor): The mask for the target sequence.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Returns:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;            torch.Tensor: The output tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        attn_output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.self_attn(x, x, x, tgt_mask)
+&lt;&#x2F;span&gt;&lt;span&gt;        x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.norm1(x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;+ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout(attn_output))
+&lt;&#x2F;span&gt;&lt;span&gt;        attn_output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.cross_attn(x, enc_output, enc_output, src_mask)
+&lt;&#x2F;span&gt;&lt;span&gt;        x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.norm2(x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;+ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout(attn_output))
+&lt;&#x2F;span&gt;&lt;span&gt;        ff_output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.feed_forward(x)
+&lt;&#x2F;span&gt;&lt;span&gt;        x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.norm3(x &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;+ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout(ff_output))
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;x
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h3 id=&quot;building-the-transformer&quot;&gt;Building the Transformer&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; href=&quot;#building-the-transformer&quot; hidden=&quot;&quot;&gt;#&lt;&#x2F;a&gt;
+&lt;&#x2F;h3&gt;
+&lt;p&gt;Now that we have built every layer Lets combine them to Build the Transformer&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#383838;color:#e6e1dc;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;class &lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;color:#ffc66d;&quot;&gt;Transformer&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;text-decoration:underline;font-style:italic;color:#ffc66d;&quot;&gt;nn.Module&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;src_vocab_size&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;tgt_vocab_size&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;embedding_dim&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;num_heads&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;num_layers&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;feed_forward_dim&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;max_seq_length&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dropout&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Initializes the Transformer model.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - src_vocab_size (int): The size of the source vocabulary.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - tgt_vocab_size (int): The size of the target vocabulary.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - embedding_dim (int): The dimension of the word embeddings.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - num_heads (int): The number of attention heads.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - num_layers (int): The number of encoder and decoder layers.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - feed_forward_dim (int): The dimension of the feed-forward layer.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - max_seq_length (int): The maximum sequence length.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - dropout (float): The dropout rate.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;super&lt;&#x2F;span&gt;&lt;span&gt;(Transformer, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;).&lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.encoder_embedding &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;InputEmbeddingBlock(src_vocab_size, embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.decoder_embedding &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;InputEmbeddingBlock(tgt_vocab_size, embedding_dim)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.positional_encoding &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;PositionalEncoding(embedding_dim, max_seq_length)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.encoder_layers &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.ModuleList([EncoderBlock(embedding_dim, num_heads, feed_forward_dim, dropout) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;_ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;range&lt;&#x2F;span&gt;&lt;span&gt;(num_layers)])
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.decoder_layers &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.ModuleList([DecoderBlock(embedding_dim, num_heads, feed_forward_dim, dropout) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;_ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span style=&quot;color:#da4939;&quot;&gt;range&lt;&#x2F;span&gt;&lt;span&gt;(num_layers)])
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.fc &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Linear(embedding_dim, tgt_vocab_size)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;nn.Dropout(dropout)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffc66d;&quot;&gt;generate_mask&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;src&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;tgt&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Generates masks for the source and target sequences.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - src (Tensor): The source sequence tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - tgt (Tensor): The target sequence tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Returns:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - src_mask (Tensor): The source mask tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - tgt_mask (Tensor): The target mask tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        src_mask &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;(src &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;!= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;).unsqueeze(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;).unsqueeze(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;        tgt_mask &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;(tgt &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;!= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;).unsqueeze(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;).unsqueeze(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;3&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;        seq_length &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;tgt.size(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;        nopeak_mask &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span&gt;torch.triu(torch.ones(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;, seq_length, seq_length), &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;diagonal&lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a5c261;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;)).bool()
+&lt;&#x2F;span&gt;&lt;span&gt;        tgt_mask &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;tgt_mask &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;&amp;amp; &lt;&#x2F;span&gt;&lt;span&gt;nopeak_mask
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;src_mask, tgt_mask
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#cc7833;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ffc66d;&quot;&gt;forward&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;src&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;tgt&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;&amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Performs forward pass of the Transformer model.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Args:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - src (Tensor): The source sequence tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - tgt (Tensor): The target sequence tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        Returns:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        - output (Tensor): The output tensor.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#95815e;&quot;&gt;        &amp;quot;&amp;quot;&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;        src_mask, tgt_mask &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.generate_mask(src, tgt)
+&lt;&#x2F;span&gt;&lt;span&gt;        src_embedded &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.positional_encoding(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.encoder_embedding(src)))
+&lt;&#x2F;span&gt;&lt;span&gt;        tgt_embedded &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.dropout(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.positional_encoding(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.decoder_embedding(tgt)))
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        enc_output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;src_embedded
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;enc_layer &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.encoder_layers:
+&lt;&#x2F;span&gt;&lt;span&gt;            enc_output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;enc_layer(enc_output, src_mask)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        dec_output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;tgt_embedded
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;dec_layer &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.decoder_layers:
+&lt;&#x2F;span&gt;&lt;span&gt;            dec_output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;dec_layer(dec_output, enc_output, src_mask, tgt_mask)
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d0d0ff;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.fc(dec_output)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#cc7833;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;output
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+</content>
+        
+    </entry>
+</feed>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://vikramxd.github.io/</loc>
+    </url>
+    <url>
+        <loc>https://vikramxd.github.io/archive/</loc>
+    </url>
+    <url>
+        <loc>https://vikramxd.github.io/page/1/</loc>
+    </url>
+    <url>
+        <loc>https://vikramxd.github.io/posts/</loc>
+    </url>
+    <url>
+        <loc>https://vikramxd.github.io/posts/page/1/</loc>
+    </url>
+    <url>
+        <loc>https://vikramxd.github.io/posts/transformers/</loc>
+        <lastmod>2024-10-23</lastmod>
+    </url>
+    <url>
+        <loc>https://vikramxd.github.io/search/</loc>
+        <lastmod>2024-02-27</lastmod>
+    </url>
+    <url>
+        <loc>https://vikramxd.github.io/tags/</loc>
+    </url>
+    <url>
+        <loc>https://vikramxd.github.io/tags/ml-research-paper-implementation/</loc>
+    </url>
+</urlset>
