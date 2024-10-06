@@ -1,70 +1,54 @@
-author = "cydave"
-title = "PaperMod"
-base_url = "https://cydave.github.io/zola-theme-papermod"
-compile_sass = true
-build_search_index = true 
-generate_feeds = true
-feed_filenames = [ "atom.xml",]
-minify_html = true
 
 
 taxonomies = [
-    { name = "tags", feed = true }
+    { name = "tags", feed = false }
 ]
 
-[search]
-# Whether to include the title of the page/section in the index
-include_title = true
-# Whether to include the description of the page/section in the index
-include_description = false
-# Whether to include the path of the page/section in the index
-include_path = false
-# Whether to include the rendered content of the page/section in the index
-include_content = true
-# At which character to truncate the content to. Useful if you have a lot of pages and the index would
-# become too big to load on the site. Defaults to not being set.
-# truncate_content_length = 100
-# Wether to produce the search index as a javascript file or as a JSON file
-# Accepted value "elasticlunr_javascript" or "elasticlunr_json"
-index_format = "elasticlunr_json"
+# The URL the site will be built for
+base_url = "https://vikramxd.github.io"
+
+# Whether to automatically compile all Sass files in the sass directory
+compile_sass = true
+
+# Whether to build a search index to be used later on by a JavaScript library
+build_search_index = true
 
 [markdown]
 # Whether to do syntax highlighting
 # Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
 highlight_code = true
+highlight_theme = "two-dark"
 
+minify_html = true
 [extra]
 
 [extra.papermod]
-title = "PaperMod"
-default_theme = "auto"
-theme = "light"
+title = "Applied Mode"
+default_theme = "dark"
+theme = "dark"
 language_direction = "auto"
-keywords = ["keyword1", "keyword2", "keyword3"]
+keywords = ["ML", "Engineering", "Systems"]
 show_theme_toggle = true
 show_scroll_to_top = true
 show_code_copy_buttons = true
 show_reading_time = true
-show_word_count = false
+show_word_count = true
 show_post_nav_links = true
 show_post_meta = true
 default_toc_open = false
 show_post_edit_button = false
 edit_post_url = "https://github.com/cydave/zola-theme-papermod/tree/master"
-#copyright = ""
-date_format = "%Y-%m-%d"
+date_format = "%d %B %Y"
 navigation = [
-    { url = "$BASE_URL/archive", title = "Archive" },
+    { url = "$BASE_URL/archive", title = "Archive"},
     { url = "$BASE_URL/tags", title = "Tags" },
     { url = "$BASE_URL/search", title = "Search" },
-    { url = "https://getzola.org/", title = "Zola", is_external = true }
 ]
 
-home_title = "PaperMod"
-home_content = "Welcome to a demo of the PaperMod theme!<br><b>PaperMod</b> is a simple but fast and responsive theme with a useful feature-set that enhances UX.<br>Do give a 🌟 on Github !<br>PaperMod is based on the hugo-PaperMod theme."
+home_title = "Applied Mode"
+home_content =   "👋 I'm Vikram, deploying ML models in production. Specializing in Computer Vision and Diffusion Models. Worked with early-stage startups, now aiming to scale up for larger consumer base. This site documents my journey through AI's landscape – sharing learnings and occasional rants. Committed to building in public and open source. 🚀"
 social_icons = [
-    { url = "https://github.com/cydave", title = "GitHub", icon = "github" },
-    { url = "https://infosec.exchange/@cydave", title = "Mastodon", icon = "mastodon" },
-    { url = "https://twitter.com/_cydave", title = "Twitter", icon = "twitter" },
-    { url = "$BASE_URL/atom.xml", title = "RSS", icon = "rss" },
+    { url = "https://github.com/vikramxD", title = "GitHub", icon = "github" },
+    { url = "https://twitter.com/V_J_S_1", title = "Twitter", icon = "twitter" },
+    { url= "https://linkedin.com/in/vikramsingh178",title = "linkedin" , icon="linkedin"},
 ]
