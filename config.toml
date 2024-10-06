@@ -17,7 +17,7 @@ build_search_index = true
 # Whether to do syntax highlighting
 # Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
 highlight_code = true
-highlight_theme = "two-dark"
+highlight_theme = "kronuz"
 
 minify_html = true
 [extra]
@@ -43,6 +43,7 @@ navigation = [
     { url = "$BASE_URL/archive", title = "Archive"},
     { url = "$BASE_URL/tags", title = "Tags" },
     { url = "$BASE_URL/search", title = "Search" },
+    { url=  "https://docs.google.com/document/d/1A8KGNkAtYyi4zIxSFWQ_mwBqhbXn8Pu_qbSNzDHwaws/edit?usp=sharing",title='Resume'}
 ]
 
 home_title = "Applied Mode"
@@ -51,4 +52,5 @@ social_icons = [
     { url = "https://github.com/vikramxD", title = "GitHub", icon = "github" },
     { url = "https://twitter.com/V_J_S_1", title = "Twitter", icon = "twitter" },
     { url= "https://linkedin.com/in/vikramsingh178",title = "linkedin" , icon="linkedin"},
+    
 ]
